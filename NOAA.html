@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        h1 {
+            color: #800080;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #locations {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        label {
+            cursor: pointer;
+        }
+
+        #forecasts, #alerts {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #forecasts h2, #alerts h2 {
+            color: #800080;
+            margin-top: 0;
+        }
+
+        #forecast, #alerts_headline {
+            margin-top: 10px;
+        }
+    </style>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Test</title>
+</head>
+<body>
+    <h1>Select Location</h1>
+    <div id="locations">
+        <input type="radio" name="location" value="Boone" id="boone">
+        <label for="boone">Boone</label><br>
+        
+        <input type="radio" name="location" value="Raleigh" id="raleigh">
+        <label for="raleigh">Raleigh</label><br>
+        
+        <input type="radio" name="location" value="Wilmington" id="wilmington">
+        <label for="wilmington">Wilmington</label>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+    var radios = document.querySelectorAll('input[type="radio"]');
+    radios.forEach(function(radio) {
+        radio.addEventListener('change', function(event) {
+            var f_url;
+            var a_url;
+            var home;
+            if (event.target.id === "boone") {
+                f_url = "https://api.weather.gov/gridpoints/RNK/17,16/forecast";
+                a_url = "https://api.weather.gov/alerts/active/zone/NCZ018";
+                home = "Boone";
+            } else if (event.target.id === "raleigh") {
+                f_url = "https://api.weather.gov/gridpoints/RAH/75,57/forecast";
+                a_url = "https://api.weather.gov/alerts/active/zone/NCZ041";
+                home = "Raleigh";
+            } else if (event.target.id === "wilmington") {
+                f_url = "https://api.weather.gov/gridpoints/ILM/91,67/forecast";
+                a_url = "https://api.weather.gov/alerts/active/zone/NCZ107";
+                home = "Wilmington";
+            }
+            fetchData(f_url, a_url, home);
+        });
+    });
+
+    async function fetchData(f_url, a_url, home) {
+        try {
+            const forecastResponse = await fetch(f_url);
+            const alertsResponse = await fetch(a_url);
+
+            if (!forecastResponse.ok || !alertsResponse.ok) {
+                throw new Error("Network response was not ok");
+            }
+
+            const forecastData = await forecastResponse.json();
+            const alertsData = await alertsResponse.json();
+
+            let forecast = forecastData.properties.periods[0].detailedForecast;
+            document.getElementById('forecast').textContent = `${forecast}`;
+            document.getElementById('place').textContent = `The forecast for ${home} is:`;
+
+            let alerts = alertsData.features.map(feature => feature.properties.headline).join(", ");
+            document.getElementById('alerts_headline').textContent = `${alerts}.`;
+            document.getElementById('alert_place').textContent = `The Alerts for ${home} are:`;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+});
+
+</script>
+
+    <div id="forecasts">
+        <h2 id="place"></h2>
+        <p id="forecast"></p>
+    </div>
+
+    <div id="alerts">
+        <h2 id="alert_place"></h2>
+        <p id="alerts_headline"></p>
+    </div>
+</body>
+</html>
+
